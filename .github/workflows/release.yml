@@ -3,24 +3,25 @@ name: Release Obsidian plugin
 on:
   push:
     tags:
-      - '*'
+      - "*"
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '21.x'
+          node-version: "22"
 
       - name: Build plugin
-        run: |
-          npm install
-          npm run build
+        run: | 
+          corepack enable
+          corepack install
+          pnpm run build:prod
 
       - name: Create release
         env:
@@ -29,5 +30,5 @@ jobs:
           tag="${GITHUB_REF#refs/tags/}"
 
           gh release create "$tag" \
-            --title="$tag" \
-            build/main.js manifest.json styles.css
+          --title="$tag" \
+          build/main.js manifest.json styles.css
