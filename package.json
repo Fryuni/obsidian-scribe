@@ -1,50 +1,52 @@
 {
-  "name": "obsidian-scribe-plugin",
-  "version": "1.1.2",
-  "description": "An Obsidian plugin for recording voice notes, transcribing the audio, and summarizing the text - All in one",
-  "main": "build/main.js",
-  "scripts": {
-    "dev": "node esbuild.config.mjs",
-    "build:prod": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-    "version": "node version-bump.mjs && git add manifest.json versions.json"
-  },
-  "keywords": [],
-  "author": "Mike Alicea",
-  "license": "MIT",
-  "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "@types/node": "^22.13.1",
-    "@types/react": "^19.0.8",
-    "@types/react-dom": "^19.0.3",
-    "builtin-modules": "3.3.0",
-    "dotenv": "^16.4.5",
-    "electron": "^34.1.1",
-    "esbuild": "0.24.2",
-    "obsidian": "latest",
-    "tslib": "2.8.1",
-    "typescript": "5.7.3"
-  },
-  "dependencies": {
-    "@google-cloud/speech": "^6.7.0",
-    "@google-cloud/storage": "^7.15.0",
-    "@google/generative-ai": "^0.21.0",
-    "@langchain/core": "^0.3.14",
-    "@langchain/google-genai": "^0.1.8",
-    "@langchain/google-vertexai": "^0.1.8",
-    "@langchain/openai": "^0.4.2",
-    "assemblyai": "^4.8.0",
-    "langchain": "^0.3.3",
-    "mini-debounce": "^1.0.8",
-    "openai": "^4.68.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "zod": "^3.23.8",
-    "zod-to-json-schema": "^3.24.1"
-  },
-  "packageManager": "pnpm@10.2.1+sha512.398035c7bd696d0ba0b10a688ed558285329d27ea994804a52bad9167d8e3a72bcb993f9699585d3ca25779ac64949ef422757a6c31102c12ab932e5cbe5cc92",
-  "pnpm": {
-    "patchedDependencies": {
-      "@google-cloud/storage": "patches/@google-cloud__storage.patch"
-    }
-  }
+	"name": "obsidian-scribe-plugin",
+	"version": "0.0.0",
+	"description": "An Obsidian plugin for recording voice notes, transcribing the audio, and summarizing the text - All in one",
+	"main": "build/main.js",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build:prod": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"version": "node version-bump.mjs"
+	},
+	"keywords": [],
+	"author": "Mike Alicea",
+	"license": "MIT",
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@types/node": "^22.13.1",
+		"@types/react": "^19.0.8",
+		"@types/react-dom": "^19.0.3",
+		"builtin-modules": "3.3.0",
+		"dotenv": "^16.4.5",
+		"electron": "^34.1.1",
+		"esbuild": "0.24.2",
+		"obsidian": "latest",
+		"semver": "^7.7.1",
+		"tslib": "2.8.1",
+		"typescript": "5.7.3",
+		"zx": "^8.3.2"
+	},
+	"dependencies": {
+		"@google-cloud/speech": "^6.7.0",
+		"@google-cloud/storage": "^7.15.0",
+		"@google/generative-ai": "^0.21.0",
+		"@langchain/core": "^0.3.14",
+		"@langchain/google-genai": "^0.1.8",
+		"@langchain/google-vertexai": "^0.1.8",
+		"@langchain/openai": "^0.4.2",
+		"assemblyai": "^4.8.0",
+		"langchain": "^0.3.3",
+		"mini-debounce": "^1.0.8",
+		"openai": "^4.68.3",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"zod": "^3.23.8",
+		"zod-to-json-schema": "^3.24.1"
+	},
+	"packageManager": "pnpm@10.2.1+sha512.398035c7bd696d0ba0b10a688ed558285329d27ea994804a52bad9167d8e3a72bcb993f9699585d3ca25779ac64949ef422757a6c31102c12ab932e5cbe5cc92",
+	"pnpm": {
+		"patchedDependencies": {
+			"@google-cloud/storage": "patches/@google-cloud__storage.patch"
+		}
+	}
 }
