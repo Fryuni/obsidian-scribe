@@ -18,6 +18,8 @@ jobs:
           node-version: "22"
 
       - name: Build plugin
+        env:
+          COREPACK_INTEGRITY_KEYS: '0'
         run: | 
           corepack enable
           corepack install
