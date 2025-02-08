@@ -5,7 +5,9 @@ import { $, question } from "zx";
 import * as semver from "semver";
 
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
-const suggestedNextVersion = semver.inc(packageJson.version);
+console.log("Current version:", packageJson.version);
+const suggestedNextVersion = semver.inc(packageJson.version, "patch");
+console.log("Suggested next version:", suggestedNextVersion);
 
 const targetVersion =
 	(await question(
