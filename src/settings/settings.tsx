@@ -1,4 +1,4 @@
-import { type App, Notice, PluginSettingTab, Setting, moment } from "obsidian";
+import { type App, PluginSettingTab, Setting, } from "obsidian";
 import { createRoot, type Root } from "react-dom/client";
 import { useDebounce } from "src/util/useDebounce";
 
@@ -22,6 +22,7 @@ export const DEFAULT_SETTINGS: ScribePluginSettings = {
 	openAiApiKey: "",
 	geminiApiKey: "",
 	vertexServiceAccount: "",
+	vertexIntermediaryBucket: '',
 	recordingDirectory: "",
 	transcriptDirectory: "",
 	transcriptPlatform: TRANSCRIPT_PLATFORM.openAi,
@@ -114,6 +115,18 @@ export class ScribeSettingsTab extends PluginSettingTab {
 					}),
 			);
 
+		new Setting(containerEl)
+			.setName("Vertex AI Scratch Bucket")
+			.setDesc("Bucket to store audio files during processing.")
+			.addText((text) =>
+				text
+					.setPlaceholder("{...}")
+					.setValue(this.plugin.settings.vertexIntermediaryBucket)
+					.onChange(async (value) => {
+						this.plugin.settings.vertexIntermediaryBucket = value;
+						await this.plugin.saveSettings();
+					}),
+			);
 
 		const foldersInVault = this.plugin.app.vault.getAllFolders();
 

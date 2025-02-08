@@ -7,6 +7,7 @@ export interface PlatformOptions {
 	openAiApiKey: string;
 	geminiApiKey: string;
 	vertexServiceAccount: string;
+	vertexIntermediaryBucket: string;
 	transcriptPlatform: TRANSCRIPT_PLATFORM;
 	llmModel: LLM_MODELS;
 }
@@ -32,6 +33,7 @@ export function transcribeAudio(buffer: ArrayBuffer, options: PlatformOptions): 
 		case TRANSCRIPT_PLATFORM.vertexAi:
 			return transcribeAudioWithVertexAi(
 				options.vertexServiceAccount,
+				options.vertexIntermediaryBucket,
 				buffer,
 			);
 	}

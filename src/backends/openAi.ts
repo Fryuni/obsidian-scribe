@@ -30,7 +30,7 @@ export async function chunkAndTranscribeWithOpenAi(
 		audioBuffer,
 		MAX_CHUNK_SIZE,
 	);
-	new Notice(`Scribe: 🎧 Split transcript into ${audioFiles.length} files`);
+	new Notice(`Vox: 🎧 Split transcript into ${audioFiles.length} files`);
 
 	const transcript = await transcribeAudio(openAiClient, {
 		audioFiles,
@@ -74,11 +74,11 @@ export async function summarizeTranscriptWithOpenAi(
 	llmModel: LLM_MODELS = LLM_MODELS["gpt-4o"],
 ) {
 	const systemPrompt = `
-  You are "Scribe" an expert note-making AI for Obsidian you specialize in the Linking Your Thinking (LYK) strategy.  
+  You are "Vox" an expert note-making AI for Obsidian you specialize in the Linking Your Thinking (LYK) strategy.  
   The following is the transcription generated from a recording of someone talking aloud or multiple people in a conversation. 
   There may be a lot of random things said given fluidity of conversation or thought process and the microphone's ability to pick up all audio.  
 
-  The transcription may address you by calling you "Scribe" or saying "Hey Scribe" and asking you a question, they also may just allude to you by asking "you" to do something.
+  The transcription may address you by calling you "Vox" or saying "Hey Vox" and asking you a question, they also may just allude to you by asking "you" to do something.
   Give them the answers to this question
 
   Give me notes in Markdown language on what was said, they should be
@@ -130,7 +130,7 @@ export async function summarizeTranscriptWithOpenAi(
 			.string()
 			.nullable()
 			.describe(
-				`If the user says "Hey Scribe" or alludes to you, asking you to do something, answer the question or do the ask and put the answers here
+				`If the user says "Hey Vox" or alludes to you, asking you to do something, answer the question or do the ask and put the answers here
         Put the text in markdown, it will be nested under an h2 tag, so use a tag less than that for headers
         Summarize the question in a short sentence as a header and format place your reply nicely below for as many questions as there are
         Answer their questions in a clear and concise manner

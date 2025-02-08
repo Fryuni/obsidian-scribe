@@ -26,6 +26,7 @@ import {
 import { extractMermaidChart } from "./util/textUtil";
 import { formatFilenamePrefix } from "./util/filenameUtils";
 import { summarizeTranscript, transcribeAudio } from "./backends/shared";
+// import './util/cors';
 
 export interface ScribeState {
 	isOpen: boolean;
