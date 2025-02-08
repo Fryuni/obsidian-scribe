@@ -4,21 +4,12 @@ import { useDebounce } from "src/util/useDebounce";
 
 import type ScribePlugin from "src";
 
-import { LLM_MODELS } from "src/util/openAiUtils";
-
 import { FileNameSettings } from "./components/FileNameSettings";
+import { LLM_MODELS, PlatformOptions, TRANSCRIPT_PLATFORM } from "src/backends/shared";
 
-export enum TRANSCRIPT_PLATFORM {
-	assemblyAi = "assemblyAi",
-	openAi = "openAi",
-}
-export interface ScribePluginSettings {
-	assemblyAiApiKey: string;
-	openAiApiKey: string;
+export interface ScribePluginSettings extends PlatformOptions {
 	recordingDirectory: string;
 	transcriptDirectory: string;
-	transcriptPlatform: TRANSCRIPT_PLATFORM;
-	llmModel: LLM_MODELS;
 	recordingFilenamePrefix: string;
 	noteFilenamePrefix: string;
 	dateFilenameFormat: string;
@@ -29,6 +20,8 @@ export interface ScribePluginSettings {
 export const DEFAULT_SETTINGS: ScribePluginSettings = {
 	assemblyAiApiKey: "",
 	openAiApiKey: "",
+	geminiApiKey: "",
+	vertexServiceAccount: "",
 	recordingDirectory: "",
 	transcriptDirectory: "",
 	transcriptPlatform: TRANSCRIPT_PLATFORM.openAi,
@@ -89,6 +82,38 @@ export class ScribeSettingsTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}),
 			);
+
+		new Setting(containerEl)
+			.setName("Gemini API key")
+			.setDesc(
+				"You can find this in your Gemini AIStudio console - https://aistudio.google.com",
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("sk-....")
+					.setValue(this.plugin.settings.geminiApiKey)
+					.onChange(async (value) => {
+						this.plugin.settings.geminiApiKey = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Vertex AI Service Account")
+			.setDesc(
+				"You can generate this service account on the GCP console - https://console.cloud.google.com"
+				+ "\nIt requires the role `roles/speech.client`.",
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("{...}")
+					.setValue(this.plugin.settings.vertexServiceAccount)
+					.onChange(async (value) => {
+						this.plugin.settings.vertexServiceAccount = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
 
 		const foldersInVault = this.plugin.app.vault.getAllFolders();
 
@@ -209,8 +234,8 @@ export class ScribeSettingsTab extends PluginSettingTab {
 		});
 	}
 
-	saveSettings() {
-		this.plugin.saveSettings();
+	async saveSettings() {
+		await this.plugin.saveSettings();
 	}
 }
 

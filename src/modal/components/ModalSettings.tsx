@@ -1,7 +1,6 @@
 import type ScribePlugin from "src";
 import { useEffect, useState } from "react";
-import { LLM_MODELS } from "src/util/openAiUtils";
-import { TRANSCRIPT_PLATFORM } from "src/settings/settings";
+import { LLM_MODELS, TRANSCRIPT_PLATFORM } from "src/backends/shared";
 
 export const ModalSettings = ({ plugin }: { plugin: ScribePlugin }) => {
 	// State for each setting

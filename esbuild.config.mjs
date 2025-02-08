@@ -17,83 +17,84 @@ https://github.com/Mikodin/obsidian-scribe
 const prod = process.argv[2] === 'production';
 
 const copy_to_plugins = {
-  name: 'copy_to_plugins',
-  setup(build) {
-    build.onEnd(() => {
-      const dir = process.env.OBSIDIAN_PLUGINS_PATH;
-      fs.copyFileSync('./src/styles.css', './build/styles.css');
-      fs.copyFileSync('./manifest.json', './build/manifest.json');
+	name: 'copy_to_plugins',
+	setup(build) {
+		build.onEnd(() => {
+			const dir = process.env.OBSIDIAN_PLUGINS_PATH;
+			fs.copyFileSync('./src/styles.css', './build/styles.css');
+			fs.copyFileSync('./manifest.json', './build/manifest.json');
 
-      if (prod) return;
+			if (prod) return;
 
-      if (!dir) {
-        console.warn(
-          '-->Unable to find OBSIDIAN_PLUGINS_PATH in env - follow the directions in .env.example, otherwise copy build/ to your obsidian plugins folder',
-        );
-      }
+			if (!dir) {
+				console.warn(
+					'-->Unable to find OBSIDIAN_PLUGINS_PATH in env - follow the directions in .env.example, otherwise copy build/ to your obsidian plugins folder',
+				);
+			}
 
-      if (dir) {
-        const plugin_path = path.join(dir, 'obsidian-scribe');
+			if (dir) {
+				const plugin_path = path.join(dir, 'scribe');
 
-        if (!fs.existsSync(plugin_path)) {
-          fs.mkdirSync(plugin_path);
-        }
+				if (!fs.existsSync(plugin_path)) {
+					fs.mkdirSync(plugin_path);
+				}
 
-        fs.copyFileSync('./build/main.js', path.join(plugin_path, 'main.js'));
-        fs.copyFileSync(
-          './manifest.json',
-          path.join(plugin_path, 'manifest.json'),
-        );
-        fs.copyFileSync(
-          './src/styles.css',
-          path.join(plugin_path, 'styles.css'),
-        );
+				fs.copyFileSync('./build/main.js', path.join(plugin_path, 'main.js'));
+				fs.copyFileSync(
+					'./manifest.json',
+					path.join(plugin_path, 'manifest.json'),
+				);
+				fs.copyFileSync(
+					'./src/styles.css',
+					path.join(plugin_path, 'styles.css'),
+				);
 
-        /**
-         * Adds empty .hotreload file, install Obsidian hotreload plugin to use
-         * https://github.com/pjeby/hot-reload
-         */
-        fs.writeFileSync(path.join(plugin_path, '.hotreload'), '');
-      }
-    });
-  },
+				/**
+				 * Adds empty .hotreload file, install Obsidian hotreload plugin to use
+				 * https://github.com/pjeby/hot-reload
+				 */
+				fs.writeFileSync(path.join(plugin_path, '.hotreload'), '');
+			}
+		});
+	},
 };
 
 const context = await esbuild.context({
-  banner: {
-    js: banner,
-  },
-  entryPoints: ['main.ts'],
-  outfile: 'build/main.js',
-  plugins: [copy_to_plugins],
-  bundle: true,
-  format: 'cjs',
-  target: 'es2018',
-  logLevel: 'info',
-  sourcemap: prod ? false : 'inline',
-  treeShaking: true,
-  minify: prod,
-  external: [
-    'obsidian',
-    'electron',
-    '@codemirror/autocomplete',
-    '@codemirror/collab',
-    '@codemirror/commands',
-    '@codemirror/language',
-    '@codemirror/lint',
-    '@codemirror/search',
-    '@codemirror/state',
-    '@codemirror/view',
-    '@lezer/common',
-    '@lezer/highlight',
-    '@lezer/lr',
-    ...builtins,
-  ],
+	banner: {
+		js: banner,
+	},
+	entryPoints: ['main.ts'],
+	outfile: 'build/main.js',
+	platform: 'node',
+	plugins: [copy_to_plugins],
+	bundle: true,
+	format: 'cjs',
+	target: 'es2018',
+	logLevel: 'info',
+	sourcemap: prod ? false : 'inline',
+	treeShaking: true,
+	minify: prod,
+	external: [
+		'obsidian',
+		'electron',
+		'@codemirror/autocomplete',
+		'@codemirror/collab',
+		'@codemirror/commands',
+		'@codemirror/language',
+		'@codemirror/lint',
+		'@codemirror/search',
+		'@codemirror/state',
+		'@codemirror/view',
+		'@lezer/common',
+		'@lezer/highlight',
+		'@lezer/lr',
+		...builtins,
+	],
 });
 
 if (prod) {
-  await context.rebuild();
-  process.exit(0);
+	await context.rebuild();
+	process.exit(0);
 } else {
-  await context.watch();
+	await context.watch();
 }

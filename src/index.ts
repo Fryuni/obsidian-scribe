@@ -1,9 +1,8 @@
-import { Notice, Plugin, type TFile, moment, normalizePath } from "obsidian";
+import { Notice, Plugin, type TFile, normalizePath } from "obsidian";
 import type OpenAI from "openai";
 import {
 	DEFAULT_SETTINGS,
 	handleSettingsTab,
-	TRANSCRIPT_PLATFORM,
 	type ScribePluginSettings,
 } from "./settings/settings";
 import { handleRibbon } from "./ribbon/ribbon";
@@ -12,24 +11,21 @@ import { getDefaultPathSettings } from "./util/pathUtils";
 import { AudioRecord } from "./audioRecord/audioRecord";
 import {
 	appendTextToNote,
+	appendTextToNoteWithHeader,
 	createNewNote,
 	renameFile,
 	saveAudioRecording,
 	setupFileFrontmatter,
 } from "./util/fileUtils";
-import {
-	chunkAndTranscribeWithOpenAi,
-	llmFixMermaidChart,
-	summarizeTranscript,
-} from "./util/openAiUtils";
+import { llmFixMermaidChart, } from "./backends/openAi";
 import { ScribeControlsModal } from "./modal/scribeControlsModal";
 import {
 	mimeTypeToFileExtension,
 	type SupportedMimeType,
 } from "./util/mimeType";
 import { extractMermaidChart } from "./util/textUtil";
-import { transcribeAudioWithAssemblyAi } from "./util/assemblyAiUtil";
 import { formatFilenamePrefix } from "./util/filenameUtils";
+import { summarizeTranscript, transcribeAudio } from "./backends/shared";
 
 export interface ScribeState {
 	isOpen: boolean;
@@ -72,7 +68,7 @@ export default class ScribePlugin extends Plugin {
 		});
 	}
 
-	onunload() {}
+	onunload() { }
 
 	async loadSettings() {
 		const savedUserData: ScribePluginSettings = await this.loadData();
@@ -297,18 +293,20 @@ export default class ScribePlugin extends Plugin {
 		}
 
 		const llmSummary = await this.handleTranscriptSummary(transcript);
-		await appendTextToNote(this, note, `## Summary\n${llmSummary.summary}`);
+		await appendTextToNoteWithHeader(this, note, 'Summary', llmSummary.summary);
 		await appendTextToNote(
 			this,
 			note,
-			`## Insights\n${llmSummary.insights}`,
+			'Insights',
+			llmSummary.insights,
 		);
 
 		if (llmSummary.answeredQuestions) {
-			await appendTextToNote(
+			await appendTextToNoteWithHeader(
 				this,
 				note,
-				`## Answered Questions\n${llmSummary.answeredQuestions}`,
+				'Answered Questions',
+				llmSummary.answeredQuestions,
 			);
 		}
 
@@ -334,17 +332,7 @@ export default class ScribePlugin extends Plugin {
 			new Notice(
 				`Scribe: 🎧 Beginning transcription w/ ${this.settings.transcriptPlatform}`,
 			);
-			const transcript =
-				this.settings.transcriptPlatform ===
-				TRANSCRIPT_PLATFORM.assemblyAi
-					? await transcribeAudioWithAssemblyAi(
-							this.settings.assemblyAiApiKey,
-							audioBuffer,
-						)
-					: await chunkAndTranscribeWithOpenAi(
-							this.settings.openAiApiKey,
-							audioBuffer,
-						);
+			const transcript = await transcribeAudio(audioBuffer, this.settings);
 
 			new Notice(
 				`Scribe: 🎧 Completed transcription  w/ ${this.settings.transcriptPlatform}`,
@@ -352,8 +340,7 @@ export default class ScribePlugin extends Plugin {
 			return transcript;
 		} catch (error) {
 			new Notice(
-				`Scribe: 🎧 🛑 Something went wrong trying to Transcribe w/  ${
-					this.settings.transcriptPlatform
+				`Scribe: 🎧 🛑 Something went wrong trying to Transcribe w/  ${this.settings.transcriptPlatform
 				}
         ${error.toString()}`,
 			);
@@ -366,20 +353,19 @@ export default class ScribePlugin extends Plugin {
 	async handleTranscriptSummary(transcript: string) {
 		new Notice("Scribe: 🧠 Sending to LLM to summarize");
 		const llmSummary = await summarizeTranscript(
-			this.settings.openAiApiKey,
 			transcript,
-			this.settings.llmModel,
+			this.settings,
 		);
 		new Notice("Scribe: 🧠 LLM summation complete");
 
 		return llmSummary;
 	}
 
-	cleanup() {
+	async cleanup() {
 		this.controlModal.close();
 
 		if (this.state.audioRecord?.mediaRecorder?.state === "recording") {
-			this.state.audioRecord?.stopRecording();
+			await this.state.audioRecord?.stopRecording();
 		}
 
 		this.state.audioRecord = null;

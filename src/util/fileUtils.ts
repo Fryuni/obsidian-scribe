@@ -1,7 +1,6 @@
-import { moment, normalizePath, type TFile } from "obsidian";
+import { normalizePath, type TFile } from "obsidian";
 
 import type ScribePlugin from "src";
-import type { LLMSummary } from "./openAiUtils";
 
 export async function saveAudioRecording(
 	plugin: ScribePlugin,
@@ -99,9 +98,9 @@ export async function setupFileFrontmatter(
 					...frontMatter,
 					source: audioFile
 						? [
-								...(frontMatter.source || []),
-								`[[${audioFile.path}]]`,
-							]
+							...(frontMatter.source || []),
+							`[[${audioFile.path}]]`,
+						]
 						: frontMatter.source,
 					created_by: "[[Scribe]]",
 				};
@@ -115,6 +114,19 @@ export async function setupFileFrontmatter(
 		console.error("Failed to addAudioSourceToFrontmatter", error);
 		throw error;
 	}
+}
+
+export async function appendTextToNoteWithHeader(
+	plugin: ScribePlugin,
+	noteFile: TFile,
+	header: string,
+	text: string,
+	textToReplace?: string,
+) {
+	const headerRgx = new RegExp('^\\s*#*\\s*' + header + '\\s*', 'i');
+	const formedHeader = `## ${header}\n\n${text.replace(headerRgx, '')}`;
+
+	return appendTextToNote(plugin, noteFile, formedHeader, textToReplace);
 }
 
 export async function appendTextToNote(

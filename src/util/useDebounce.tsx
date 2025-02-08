@@ -5,7 +5,7 @@ export const useDebounce = (
 	callback: () => void,
 	timeMs: number,
 ): (() => void) => {
-	const ref = useRef<() => void>();
+	const ref = useRef<() => void>(() => { });
 
 	useEffect(() => {
 		ref.current = callback;
@@ -13,7 +13,7 @@ export const useDebounce = (
 
 	const debouncedCallback = useMemo(() => {
 		const func = () => {
-			ref.current?.();
+			ref.current();
 		};
 
 		return debounce(func, timeMs);

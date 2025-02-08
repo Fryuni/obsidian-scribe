@@ -4,31 +4,28 @@
  * Thank you for traversing this in such a clean way
  */
 import OpenAI from "openai";
-import audioDataToChunkedFiles from "./audioDataToChunkedFiles";
+import audioDataToChunkedFiles from "../util/audioDataToChunkedFiles";
 import type { FileLike } from "openai/uploads";
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatOpenAI, type ChatOpenAIFields } from "@langchain/openai";
 import { z } from "zod";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { SystemMessage } from "@langchain/core/messages";
 
-import { JsonOutputParser } from "@langchain/core/output_parsers";
 import { Notice } from "obsidian";
-
-export enum LLM_MODELS {
-	"gpt-4o-mini" = "gpt-4o-mini",
-	"gpt-4o" = "gpt-4o",
-	"gpt-4-turbo" = "gpt-4-turbo",
-}
+import { keyedMemoized } from "src/util/memo";
+import { LLM_MODELS } from "./shared";
 
 const MAX_CHUNK_SIZE = 25 * 1024 * 1024;
+
+const getOpenAiClient = keyedMemoized('OpenAI API Key', apiKey => new OpenAI({
+	apiKey,
+	dangerouslyAllowBrowser: true,
+}));
 
 export async function chunkAndTranscribeWithOpenAi(
 	openAiKey: string,
 	audioBuffer: ArrayBuffer,
 ) {
-	const openAiClient = new OpenAI({
-		apiKey: openAiKey,
-		dangerouslyAllowBrowser: true,
-	});
+	const openAiClient = getOpenAiClient(openAiKey);
 	const audioFiles = await audioDataToChunkedFiles(
 		audioBuffer,
 		MAX_CHUNK_SIZE,
@@ -71,14 +68,7 @@ async function transcribeAudio(
 	return transcript;
 }
 
-export interface LLMSummary {
-	summary: string;
-	title: string;
-	insights: string;
-	mermaidChart: string;
-	answeredQuestions?: string;
-}
-export async function summarizeTranscript(
+export async function summarizeTranscriptWithOpenAi(
 	openAiKey: string,
 	transcript: string,
 	llmModel: LLM_MODELS = LLM_MODELS["gpt-4o"],
@@ -103,18 +93,18 @@ export async function summarizeTranscript(
   - Do not include escaped new line characters
   - Do not mention "the speaker" anywhere in your response.  
   - The notes should be written as if I were writing them. 
+  - The notes should be written in either English or Portuguese, matching the language of the transcript.
 
   The following is the transcribed audio:
   <transcript>
   ${transcript}
   </transcript>
 
-  
   `;
 	const model = new ChatOpenAI({
 		model: llmModel,
 		apiKey: openAiKey,
-		temperature: 0.5,
+		...getModelOptions(llmModel),
 	});
 	const messages = [new SystemMessage(systemPrompt)];
 
@@ -138,7 +128,6 @@ export async function summarizeTranscript(
 		),
 		answeredQuestions: z
 			.string()
-			.optional()
 			.nullable()
 			.describe(
 				`If the user says "Hey Scribe" or alludes to you, asking you to do something, answer the question or do the ask and put the answers here
@@ -154,9 +143,9 @@ export async function summarizeTranscript(
 			),
 	});
 	const structuredLlm = model.withStructuredOutput(noteSummary);
-	const result = (await structuredLlm.invoke(messages)) as LLMSummary;
+	const result = await structuredLlm.invoke(messages);
 
-	return await result;
+	return result;
 }
 
 export async function llmFixMermaidChart(
@@ -180,7 +169,7 @@ Thank you
 	const model = new ChatOpenAI({
 		model: llmModel,
 		apiKey: openAiKey,
-		temperature: 0.3,
+		...getModelOptions(llmModel),
 	});
 	const messages = [new SystemMessage(systemPrompt)];
 	const structuredOutput = z.object({
@@ -193,4 +182,19 @@ Thank you
 	const { mermaidChart } = await structuredLlm.invoke(messages);
 
 	return { mermaidChart };
+}
+
+function getModelOptions(model: LLM_MODELS): Partial<ChatOpenAIFields> {
+	switch (model) {
+		case LLM_MODELS["gpt-4o-mini"]:
+			return { temperature: 0.5 };
+		case LLM_MODELS["gpt-4o"]:
+			return { temperature: 0.5 };
+		case LLM_MODELS["gpt-4-turbo"]:
+			return { temperature: 0.5 };
+		case LLM_MODELS["o3-mini"]:
+			return { reasoningEffort: 'medium' };
+		default:
+			throw new Error(`${model} is not a supported OpenAI model.`);
+	}
 }
