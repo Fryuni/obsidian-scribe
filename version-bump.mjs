@@ -40,4 +40,5 @@ await $`git commit -m "v${targetVersion}" -- package.json pnpm-lock.yaml manifes
 
 await $`git tag ${targetVersion} --sign --message "Release v${targetVersion}"`;
 
+await $`git push`;
 await $`git push --tags`;
