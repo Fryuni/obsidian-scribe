@@ -1,6 +1,9 @@
 import * as assert from "node:assert";
 
-export function keyedMemoized<T>(name: string, gen: (key: string) => T): (key: string) => T {
+export function keyedMemoized<T>(
+	name: string,
+	gen: (key: string) => T,
+): (key: string) => T {
 	let lastKey: string | null = null;
 	let lastValue: T | null = null;
 

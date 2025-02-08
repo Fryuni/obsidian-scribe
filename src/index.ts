@@ -17,7 +17,7 @@ import {
 	saveAudioRecording,
 	setupFileFrontmatter,
 } from "./util/fileUtils";
-import { llmFixMermaidChart, } from "./backends/openAi";
+import { llmFixMermaidChart } from "./backends/openAi";
 import { ScribeControlsModal } from "./modal/scribeControlsModal";
 import {
 	mimeTypeToFileExtension,
@@ -26,7 +26,6 @@ import {
 import { extractMermaidChart } from "./util/textUtil";
 import { formatFilenamePrefix } from "./util/filenameUtils";
 import { summarizeTranscript, transcribeAudio } from "./backends/shared";
-// import './util/cors';
 
 export interface ScribeState {
 	isOpen: boolean;
@@ -69,7 +68,7 @@ export default class ScribePlugin extends Plugin {
 		});
 	}
 
-	onunload() { }
+	onunload() {}
 
 	async loadSettings() {
 		const savedUserData: ScribePluginSettings = await this.loadData();
@@ -294,19 +293,19 @@ export default class ScribePlugin extends Plugin {
 		}
 
 		const llmSummary = await this.handleTranscriptSummary(transcript);
-		await appendTextToNoteWithHeader(this, note, 'Summary', llmSummary.summary);
-		await appendTextToNote(
+		await appendTextToNoteWithHeader(
 			this,
 			note,
-			'Insights',
-			llmSummary.insights,
+			"Summary",
+			llmSummary.summary,
 		);
+		await appendTextToNote(this, note, "Insights", llmSummary.insights);
 
 		if (llmSummary.answeredQuestions) {
 			await appendTextToNoteWithHeader(
 				this,
 				note,
-				'Answered Questions',
+				"Answered Questions",
 				llmSummary.answeredQuestions,
 			);
 		}
@@ -333,7 +332,10 @@ export default class ScribePlugin extends Plugin {
 			new Notice(
 				`Scribe: 🎧 Beginning transcription w/ ${this.settings.transcriptPlatform}`,
 			);
-			const transcript = await transcribeAudio(audioBuffer, this.settings);
+			const transcript = await transcribeAudio(
+				audioBuffer,
+				this.settings,
+			);
 
 			new Notice(
 				`Scribe: 🎧 Completed transcription  w/ ${this.settings.transcriptPlatform}`,
@@ -341,7 +343,8 @@ export default class ScribePlugin extends Plugin {
 			return transcript;
 		} catch (error) {
 			new Notice(
-				`Scribe: 🎧 🛑 Something went wrong trying to Transcribe w/  ${this.settings.transcriptPlatform
+				`Scribe: 🎧 🛑 Something went wrong trying to Transcribe w/  ${
+					this.settings.transcriptPlatform
 				}
         ${error.toString()}`,
 			);
@@ -352,11 +355,10 @@ export default class ScribePlugin extends Plugin {
 	}
 
 	async handleTranscriptSummary(transcript: string) {
-		new Notice("Scribe: 🧠 Sending to LLM to summarize");
-		const llmSummary = await summarizeTranscript(
-			transcript,
-			this.settings,
+		new Notice(
+			`Scribe: 🧠 Sending to LLM to summarize using ${this.settings.llmModel}`,
 		);
+		const llmSummary = await summarizeTranscript(transcript, this.settings);
 		new Notice("Scribe: 🧠 LLM summation complete");
 
 		return llmSummary;

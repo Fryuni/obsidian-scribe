@@ -16,10 +16,14 @@ import { LLM_MODELS } from "./shared";
 
 const MAX_CHUNK_SIZE = 25 * 1024 * 1024;
 
-const getOpenAiClient = keyedMemoized('OpenAI API Key', apiKey => new OpenAI({
-	apiKey,
-	dangerouslyAllowBrowser: true,
-}));
+const getOpenAiClient = keyedMemoized(
+	"OpenAI API Key",
+	(apiKey) =>
+		new OpenAI({
+			apiKey,
+			dangerouslyAllowBrowser: true,
+		}),
+);
 
 export async function chunkAndTranscribeWithOpenAi(
 	openAiKey: string,
@@ -193,7 +197,7 @@ function getModelOptions(model: LLM_MODELS): Partial<ChatOpenAIFields> {
 		case LLM_MODELS["gpt-4-turbo"]:
 			return { temperature: 0.5 };
 		case LLM_MODELS["o3-mini"]:
-			return { reasoningEffort: 'medium' };
+			return { reasoningEffort: "medium" };
 		default:
 			throw new Error(`${model} is not a supported OpenAI model.`);
 	}

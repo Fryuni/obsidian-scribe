@@ -98,9 +98,9 @@ export async function setupFileFrontmatter(
 					...frontMatter,
 					source: audioFile
 						? [
-							...(frontMatter.source || []),
-							`[[${audioFile.path}]]`,
-						]
+								...(frontMatter.source || []),
+								`[[${audioFile.path}]]`,
+							]
 						: frontMatter.source,
 					created_by: "[[Scribe]]",
 				};
@@ -123,8 +123,8 @@ export async function appendTextToNoteWithHeader(
 	text: string,
 	textToReplace?: string,
 ) {
-	const headerRgx = new RegExp('^\\s*#*\\s*' + header + '\\s*', 'i');
-	const formedHeader = `## ${header}\n\n${text.replace(headerRgx, '')}`;
+	const headerRgx = new RegExp("^\\s*#*\\s*" + header + "\\s*", "i");
+	const formedHeader = `## ${header}\n\n${text.replace(headerRgx, "")}`;
 
 	return appendTextToNote(plugin, noteFile, formedHeader, textToReplace);
 }

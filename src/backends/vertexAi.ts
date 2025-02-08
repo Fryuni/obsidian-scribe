@@ -1,26 +1,47 @@
-import { v2 } from '@google-cloud/speech';
-import { FunctionCallingMode, GoogleGenerativeAI, ModelParams, SchemaType, } from '@google/generative-ai';
-import { ChatGoogleGenerativeAI, type GoogleGenerativeAIChatInput } from '@langchain/google-genai';
-import { keyedMemoized } from 'src/util/memo';
-import { LLM_MODELS } from './shared';
-import { SystemMessage } from '@langchain/core/messages';
-import { Storage } from '@google-cloud/storage';
-import { z } from 'zod';
-import zodToJsonSchema from 'zod-to-json-schema';
-import { randomUUID } from 'node:crypto';
+import { v2 } from "@google-cloud/speech";
+import {
+	FunctionCallingMode,
+	GoogleGenerativeAI,
+	ModelParams,
+	SchemaType,
+} from "@google/generative-ai";
+import {
+	ChatGoogleGenerativeAI,
+	type GoogleGenerativeAIChatInput,
+} from "@langchain/google-genai";
+import { keyedMemoized } from "src/util/memo";
+import { LLM_MODELS } from "./shared";
+import { SystemMessage } from "@langchain/core/messages";
+import { Storage } from "@google-cloud/storage";
+import { z } from "zod";
+import zodToJsonSchema from "zod-to-json-schema";
+import { randomUUID } from "node:crypto";
 
-const getSpeechClient = keyedMemoized('Vertex AI Service Account', credentials => new v2.SpeechClient({
-	apiEndpoint: `us-central1-speech.googleapis.com`,
-	credentials: JSON.parse(credentials),
-	projectId: JSON.parse(credentials)?.project_id || 'lferraz-portfolio',
-}));
+const getSpeechClient = keyedMemoized(
+	"Vertex AI Service Account",
+	(credentials) =>
+		new v2.SpeechClient({
+			apiEndpoint: `us-central1-speech.googleapis.com`,
+			credentials: JSON.parse(credentials),
+			projectId:
+				JSON.parse(credentials)?.project_id || "lferraz-portfolio",
+		}),
+);
 
-const getStorageClient = keyedMemoized('Vertex AI Service Account', credentials => new Storage({
-	credentials: JSON.parse(credentials),
-	projectId: JSON.parse(credentials)?.project_id || 'lferraz-portfolio',
-}))
+const getStorageClient = keyedMemoized(
+	"Vertex AI Service Account",
+	(credentials) =>
+		new Storage({
+			credentials: JSON.parse(credentials),
+			projectId:
+				JSON.parse(credentials)?.project_id || "lferraz-portfolio",
+		}),
+);
 
-const getGenerativeAiClient = keyedMemoized('Generative AI API Key', apiKey => new GoogleGenerativeAI(apiKey));
+const getGenerativeAiClient = keyedMemoized(
+	"Generative AI API Key",
+	(apiKey) => new GoogleGenerativeAI(apiKey),
+);
 
 export async function transcribeAudioWithVertexAi(
 	credentials: string,
@@ -32,21 +53,21 @@ export async function transcribeAudioWithVertexAi(
 
 	const file = storage.bucket(bucket).file(`${randomUUID()}.webm`);
 
-	const stream = file.createWriteStream({ resumable: false, });
+	const stream = file.createWriteStream({ resumable: false });
 
 	await new Promise<void>((resolve, reject) => {
 		stream.write(new Uint8Array(audioBuffer), (err) => {
 			if (err) return reject(err);
 			resolve();
 		});
-	})
+	});
 
-	await new Promise<void>(resolve => stream.end(resolve));
+	await new Promise<void>((resolve) => stream.end(resolve));
 
 	try {
 		return await fastTrasncribe();
 	} catch (error) {
-		if (error.message.includes('Audio can be of a maximum of 60 seconds')) {
+		if (error.message.includes("Audio can be of a maximum of 60 seconds")) {
 			return await longTranscribe();
 		}
 
@@ -60,22 +81,22 @@ export async function transcribeAudioWithVertexAi(
 			recognizer: `projects/${await speech.getProjectId()}/locations/us-central1/recognizers/_`,
 			uri: `gs://${bucket}/${file.name}`,
 			config: {
-				model: 'chirp_2',
-				features: { enableAutomaticPunctuation: true, },
-				languageCodes: ['auto'],
+				model: "chirp_2",
+				features: { enableAutomaticPunctuation: true },
+				languageCodes: ["auto"],
 				autoDecodingConfig: {},
 			},
-		})
+		});
 
 		if (!response.results) {
-			throw new Error('Failed to transcribe audio.');
+			throw new Error("Failed to transcribe audio.");
 		}
 
 		const rawTranscript = response.results
-			.map(result => result.alternatives?.[0].transcript || '')
-			.join(' ');
+			.map((result) => result.alternatives?.[0].transcript || "")
+			.join(" ");
 
-		return rawTranscript.replace(/(\s)\1+/g, '$1').trim();
+		return rawTranscript.replace(/(\s)\1+/g, "$1").trim();
 	}
 
 	async function longTranscribe(): Promise<string> {
@@ -85,27 +106,27 @@ export async function transcribeAudioWithVertexAi(
 			recognizer: `projects/${await speech.getProjectId()}/locations/us-central1/recognizers/_`,
 			files: [{ uri: audioUri }],
 			config: {
-				model: 'chirp_2',
-				features: { enableAutomaticPunctuation: true, },
-				languageCodes: ['auto'],
+				model: "chirp_2",
+				features: { enableAutomaticPunctuation: true },
+				languageCodes: ["auto"],
 				autoDecodingConfig: {},
 			},
 			recognitionOutputConfig: {
-				inlineResponseConfig: {}
-			}
-		})
+				inlineResponseConfig: {},
+			},
+		});
 
 		const [response] = await operation.promise();
 
 		if (!response.results?.[audioUri].transcript?.results) {
-			throw new Error('Failed to transcribe audio.');
+			throw new Error("Failed to transcribe audio.");
 		}
 
 		const rawTranscript = response.results?.[audioUri].transcript?.results
-			.map(result => result.alternatives?.[0].transcript || '')
-			.join(' ');
+			.map((result) => result.alternatives?.[0].transcript || "")
+			.join(" ");
 
-		return rawTranscript.replace(/(\s)\1+/g, '$1').trim();
+		return rawTranscript.replace(/(\s)\1+/g, "$1").trim();
 	}
 }
 
@@ -179,17 +200,21 @@ export async function summarizeTranscriptWithGemini(
 
 	const { response } = await model.generateContent({
 		systemInstruction: systemPrompt,
-		contents: [{
-			role: 'user',
-			parts: [{
-				text: `
+		contents: [
+			{
+				role: "user",
+				parts: [
+					{
+						text: `
 The following is the transcribed audio:
 <transcript>
 ${transcript}
 </transcript>
-`.trim()
-			}]
-		}],
+`.trim(),
+					},
+				],
+			},
+		],
 		// toolConfig: {
 		// 	functionCallingConfig: {
 		// 		mode: FunctionCallingMode.ANY,
@@ -197,22 +222,22 @@ ${transcript}
 		// 	},
 		// },
 		generationConfig: {
-			responseMimeType: 'application/json',
+			responseMimeType: "application/json",
 			responseSchema: {
 				type: SchemaType.OBJECT,
 				properties: {
 					summary: {
 						type: SchemaType.STRING,
-						description: (
-							'A summary of the transcript in Markdown. '
-							+ 'It will be nested under a h2 # tag, so use a '
-							+ 'tag less than that for headers.\n'
-							+ 'Concise bullet points containing the primary points of the speaker'
-						)
+						description:
+							"A summary of the transcript in Markdown. " +
+							"It will be nested under a h2 # tag, so use a " +
+							"tag less than that for headers.\n" +
+							"Concise bullet points containing the primary points of the speaker",
 					},
 					insights: {
 						type: SchemaType.STRING,
-						description: `Insights that you gained from the transcript in Markdown.
+						description:
+							`Insights that you gained from the transcript in Markdown.
 A brief section, a paragraph or two on what insights and enhancements you think of
 Several bullet points on things you think would be an improvement, feel free to use headers
 It will be nested under an h2 tag, so use a tag less than that for headers
@@ -235,10 +260,11 @@ Do not use any special characters that arent letters in the nodes text, particul
 					},
 					title: {
 						type: SchemaType.STRING,
-						description: "A suggested title for the Obsidian Note. Ensure that it is in the proper format for a file on mac, windows and linux, do not include any special characters",
+						description:
+							"A suggested title for the Obsidian Note. Ensure that it is in the proper format for a file on mac, windows and linux, do not include any special characters",
 					},
-				}
-			}
+				},
+			},
 		},
 	});
 
@@ -269,6 +295,8 @@ function getModelOptions(model: LLM_MODELS): Partial<ModelParams> {
 				},
 			};
 		default:
-			throw new Error(`${model} is not a supported Google Generative AI model.`);
+			throw new Error(
+				`${model} is not a supported Google Generative AI model.`,
+			);
 	}
 }

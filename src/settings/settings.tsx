@@ -1,11 +1,15 @@
-import { type App, PluginSettingTab, Setting, } from "obsidian";
+import { type App, PluginSettingTab, Setting } from "obsidian";
 import { createRoot, type Root } from "react-dom/client";
 import { useDebounce } from "src/util/useDebounce";
 
 import type ScribePlugin from "src";
 
 import { FileNameSettings } from "./components/FileNameSettings";
-import { LLM_MODELS, PlatformOptions, TRANSCRIPT_PLATFORM } from "src/backends/shared";
+import {
+	LLM_MODELS,
+	PlatformOptions,
+	TRANSCRIPT_PLATFORM,
+} from "src/backends/shared";
 
 export interface ScribePluginSettings extends PlatformOptions {
 	recordingDirectory: string;
@@ -22,7 +26,7 @@ export const DEFAULT_SETTINGS: ScribePluginSettings = {
 	openAiApiKey: "",
 	geminiApiKey: "",
 	vertexServiceAccount: "",
-	vertexIntermediaryBucket: '',
+	vertexIntermediaryBucket: "",
 	recordingDirectory: "",
 	transcriptDirectory: "",
 	transcriptPlatform: TRANSCRIPT_PLATFORM.openAi,
@@ -102,8 +106,8 @@ export class ScribeSettingsTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Vertex AI Service Account")
 			.setDesc(
-				"You can generate this service account on the GCP console - https://console.cloud.google.com"
-				+ "\nIt requires the role `roles/speech.client`.",
+				"You can generate this service account on the GCP console - https://console.cloud.google.com" +
+					"\nIt requires the role `roles/speech.client`.",
 			)
 			.addText((text) =>
 				text

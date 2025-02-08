@@ -5,7 +5,7 @@ export const useDebounce = (
 	callback: () => void,
 	timeMs: number,
 ): (() => void) => {
-	const ref = useRef<() => void>(() => { });
+	const ref = useRef<() => void>(() => {});
 
 	useEffect(() => {
 		ref.current = callback;

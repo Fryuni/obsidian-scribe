@@ -1,6 +1,12 @@
 import { transcribeAudioWithAssemblyAi } from "./assemblyAi";
-import { chunkAndTranscribeWithOpenAi, summarizeTranscriptWithOpenAi } from "./openAi";
-import { summarizeTranscriptWithGemini, transcribeAudioWithVertexAi } from "./vertexAi";
+import {
+	chunkAndTranscribeWithOpenAi,
+	summarizeTranscriptWithOpenAi,
+} from "./openAi";
+import {
+	summarizeTranscriptWithGemini,
+	transcribeAudioWithVertexAi,
+} from "./vertexAi";
 
 export interface PlatformOptions {
 	assemblyAiApiKey: string;
@@ -18,7 +24,10 @@ export enum TRANSCRIPT_PLATFORM {
 	vertexAi = "vertexAi",
 }
 
-export function transcribeAudio(buffer: ArrayBuffer, options: PlatformOptions): Promise<string> {
+export function transcribeAudio(
+	buffer: ArrayBuffer,
+	options: PlatformOptions,
+): Promise<string> {
 	switch (options.transcriptPlatform) {
 		case TRANSCRIPT_PLATFORM.assemblyAi:
 			return transcribeAudioWithAssemblyAi(
@@ -26,10 +35,7 @@ export function transcribeAudio(buffer: ArrayBuffer, options: PlatformOptions): 
 				buffer,
 			);
 		case TRANSCRIPT_PLATFORM.openAi:
-			return chunkAndTranscribeWithOpenAi(
-				options.openAiApiKey,
-				buffer,
-			);
+			return chunkAndTranscribeWithOpenAi(options.openAiApiKey, buffer);
 		case TRANSCRIPT_PLATFORM.vertexAi:
 			return transcribeAudioWithVertexAi(
 				options.vertexServiceAccount,
@@ -68,11 +74,19 @@ export async function summarizeTranscript(
 		case LLM_MODELS["gpt-4o"]:
 		case LLM_MODELS["gpt-4-turbo"]:
 		case LLM_MODELS["o3-mini"]:
-			return summarizeTranscriptWithOpenAi(options.openAiApiKey, transcript, options.llmModel);
+			return summarizeTranscriptWithOpenAi(
+				options.openAiApiKey,
+				transcript,
+				options.llmModel,
+			);
 		case LLM_MODELS["gemini-2.0-flash"]:
 		case LLM_MODELS["gemini-2.0-flash-lite-preview"]:
 		case LLM_MODELS["gemini-2.0-flash-thinking-exp"]:
 		case LLM_MODELS["gemini-2.0-pro-exp"]:
-			return summarizeTranscriptWithGemini(options.geminiApiKey, transcript, options.llmModel);
+			return summarizeTranscriptWithGemini(
+				options.geminiApiKey,
+				transcript,
+				options.llmModel,
+			);
 	}
 }
